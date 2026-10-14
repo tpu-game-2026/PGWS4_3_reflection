@@ -1,11 +1,5 @@
 Shader "Custom/Shader_10_G"
 {
-    Properties
-    {
-        [MainColor] _BaseColor("Base Color", Color) = (1, 1, 1, 1)
-        [MainTexture] _BaseMap("Base Map", 2D) = "white"
-    }
-
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
@@ -24,30 +18,19 @@ Shader "Custom/Shader_10_G"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
-                float2 uv : TEXCOORD0;
             };
 
             struct Varyings
             {
                 float4 positionHCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                float3 normalWS : TEXCOORD1;
-                float3 positionWS : TEXCOORD2;
+                float3 normalWS : TEXCOORD0;
+                float3 positionWS : TEXCOORD1;
             };
-
-            TEXTURE2D(_BaseMap);
-            SAMPLER(sampler_BaseMap);
-
-            CBUFFER_START(UnityPerMaterial)
-                half4 _BaseColor;
-                float4 _BaseMap_ST;
-            CBUFFER_END
 
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-                OUT.uv          = TRANSFORM_TEX(IN.uv, _BaseMap);
                 OUT.normalWS    = TransformObjectToWorldNormal(IN.normalOS);
                 OUT.positionWS  = TransformObjectToWorld(IN.positionOS.xyz);
                 return OUT;

@@ -4,7 +4,6 @@ Shader "Custom/Shader_11_Beckmann"
     {
         [MainColor] _BaseColor("Base Color", Color) = (0.86, 0.39, 0.39, 1)
         _Roughness("Roughness", Range(0, 1)) = 0.4
-        [MainTexture] _BaseMap("Base Map", 2D) = "white"
     }
 
     SubShader
@@ -25,31 +24,24 @@ Shader "Custom/Shader_11_Beckmann"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
-                float2 uv : TEXCOORD0;
             };
 
             struct Varyings
             {
                 float4 positionHCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                float3 normalWS : TEXCOORD1;
-                float3 positionWS : TEXCOORD2;
+                float3 normalWS : TEXCOORD0;
+                float3 positionWS : TEXCOORD1;
             };
-
-            TEXTURE2D(_BaseMap);
-            SAMPLER(sampler_BaseMap);
 
             CBUFFER_START(UnityPerMaterial)
                 half4 _BaseColor;
-                float4 _BaseMap_ST;
-                half _Roughness;
+                float _Roughness;
             CBUFFER_END
 
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-                OUT.uv          = TRANSFORM_TEX(IN.uv, _BaseMap);
                 OUT.normalWS    = TransformObjectToWorldNormal(IN.normalOS);
                 OUT.positionWS  = TransformObjectToWorld(IN.positionOS.xyz);
                 return OUT;
@@ -65,14 +57,14 @@ Shader "Custom/Shader_11_Beckmann"
                 float lightDotNormal = max(0.00001, dot(light.direction, normal));
                 float halfDotNormal = max(0.0001, dot(halfVector, normal));
 
-                float roughnessSquared = max(_Roughness * _Roughness, 0.001);
-                float alpha2 = roughnessSquared * roughnessSquared;
+                float roughnessSquared = _Roughness * _Roughness;
+                float alpha2 = max(roughnessSquared * roughnessSquared, 1e-8);
                 float halfDotNormalSquared = halfDotNormal * halfDotNormal;
-                float distribution = exp(-(1 - halfDotNormalSquared)
+                float D = exp(-(1 - halfDotNormalSquared)
                     / (halfDotNormalSquared * alpha2))
                     / (4 * alpha2 * halfDotNormalSquared * halfDotNormalSquared);
-                float brdf = saturate(distribution / (4 * lightDotNormal * viewDotNormal));
-                return half4(brdf, brdf, brdf, 1);
+                half color = saturate(D / (4 * lightDotNormal * viewDotNormal));
+                return half4(color, color, color, 1);
             }
             ENDHLSL
         }
