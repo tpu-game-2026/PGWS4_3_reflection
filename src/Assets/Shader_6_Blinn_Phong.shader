@@ -1,5 +1,5 @@
 
-Shader "Custom/Shader_6_Blinn_Phong"
+Shader "Custom/Shader_6_Blinn_Phong"//流用する場合は現在のファイル名に置き換えること。
 {
     Properties
     {
@@ -32,8 +32,8 @@ Shader "Custom/Shader_6_Blinn_Phong"
             struct Varyings
             {
                 float4 positionHCS : SV_POSITION;
-                float3 normal : NORMAL;
-                float3 position : TEXCOORD0;
+                float3 normal : TEXCOORD0;
+                float3 position : TEXCOORD1;
             };
 
             CBUFFER_START(UnityPerMaterial)
@@ -56,8 +56,8 @@ Shader "Custom/Shader_6_Blinn_Phong"
             {
                 Light light = GetMainLight();
                 half3 normal = normalize(IN.normal);
-                half3 view_direction = normalize(TransformViewToWorld(float3(0,0,0)) - IN.position);
-                float3 half_vector = normalize(view_direction + light.direction);
+                half3 view_direction = normalize(GetWorldSpaceViewDir(IN.position));
+                half3 half_vector = normalize(view_direction + light.direction);
                 half HdotN = max(0, dot(half_vector, normal));
 
                 half3 ambient = _BaseColor.rgb;
