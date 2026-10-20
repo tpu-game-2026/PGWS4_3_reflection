@@ -3,8 +3,8 @@
 
 # 結果画像
 
-![第3回の結果](result.png)
-- 工夫した点：xxx
+<img width="1914" height="1080" alt="スクリーンショット 2026-10-20 195418" src="https://github.com/user-attachments/assets/a162d4db-ad46-40c3-b24d-37afad39cf45" />
+- 工夫した点：PBRをテクスチャに対応させました。ついでに持っていた画像を貼ってTillingをXYそれぞれ10にしました
 
 # 進め方
 
