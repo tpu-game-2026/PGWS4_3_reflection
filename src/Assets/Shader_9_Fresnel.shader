@@ -2,11 +2,10 @@ Shader "Custom/Shader_9_Fresnel"
 {
     Properties
     {
-        [MainColor] _BaseColor("Base Color", Color) = (1, 1, 1, 1)
-        [MainTexture] _BaseMap("Base Map", 2D) = "white"
+        _Fresnel0("Fresnel0",Range(0,0.99999)) = 0.8
     }
 
-    SubShader
+ SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
 
@@ -18,39 +17,53 @@ Shader "Custom/Shader_9_Fresnel"
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
+                float3 normal : NORMAL;
+
+                //float2 uv : TEXCOORD0;
             };
 
             struct Varyings
             {
                 float4 positionHCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
+                float3 normal : NORMAL;
+                float3 position : TEXCOORD0;
+                //float2 uv : TEXCOORD0;
             };
 
-            TEXTURE2D(_BaseMap);
-            SAMPLER(sampler_BaseMap);
+            // TEXTURE2D(_BaseMap);
+            // SAMPLER(sampler_BaseMap);
 
             CBUFFER_START(UnityPerMaterial)
-                half4 _BaseColor;
-                float4 _BaseMap_ST;
+                half _Fresnel0;
             CBUFFER_END
 
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-                OUT.uv = TRANSFORM_TEX(IN.uv, _BaseMap);
+                OUT.normal = TransformObjectToWorldNormal(IN.normal);
+                OUT.position = TransformObjectToWorld(IN.positionOS.xyz);
+
+                //OUT.uv = TRANSFORM_TEX(IN.uv, _BaseMap);
                 return OUT;
             }
 
             half4 frag(Varyings IN) : SV_Target
             {
-                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * _BaseColor;
-                return color;
+                Light light = GetMainLight();
+                half3 normal = normalize(IN.normal);
+                half3 view_direction = normalize(TransformViewToWorld(float3(0,0,0)) - IN.position);
+                half3 half_vector = normalize(view_direction + light.direction);
+                half VdotH = max(0, dot(view_direction,half_vector));
+
+                half F = _Fresnel0 + (1-_Fresnel0)* pow(1-VdotH,5);
+
+                half3 color = F;
+                return half4 (color,1);
             }
             ENDHLSL
         }
