@@ -18,6 +18,7 @@ Shader "Custom/Shader_2_Ambient"
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             struct Attributes
             {
@@ -49,8 +50,9 @@ Shader "Custom/Shader_2_Ambient"
 
             half4 frag(Varyings IN) : SV_Target
             {
-                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * _BaseColor;
-                return color;
+                Light light = GetMainLight();
+                half3 color = light.color * _BaseColor.rgb;
+                return half4(color, 1);
             }
             ENDHLSL
         }
